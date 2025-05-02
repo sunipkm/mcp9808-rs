@@ -32,18 +32,18 @@ pub mod reg_temp_alert_upper;
 pub mod reg_temp_generic;
 
 /// MCP9808 Driver
-pub struct MCP9808<I2C> {
+pub struct MCP9808<'a, I2C> {
     addr: u8,
-    i2c: I2C,
+    i2c: &'a mut I2C,
 }
 
-impl<I2C> MCP9808<I2C>
+impl<'a, I2C> MCP9808<'a, I2C>
 where
     I2C: I2c<SevenBitAddress>,
     I2C::Error: Into<Error<I2C::Error>>,
 {
     /// Creates a new driver from an I2C peripheral.
-    pub fn new(i2c: I2C) -> Self {
+    pub fn new(i2c: &'a mut I2C) -> Self {
         MCP9808 {
             addr: SlaveAddress::Default.into(),
             i2c,
@@ -56,23 +56,18 @@ where
         self.addr
     }
 
-    /// release resources
-    pub fn free(self) -> I2C {
-        self.i2c
-    }
-
     fn read_register<T>(&mut self, mut reg: T) -> Result<T, Error<I2C::Error>>
     where
         T: prelude::Read,
         I2C: I2c<SevenBitAddress>,
         I2C::Error: Into<Error<I2C::Error>>,
     {
-        reg.read_from_device(&mut self.i2c, self.addr)?;
+        reg.read_from_device(self.i2c, self.addr)?;
         Ok(reg)
     }
 
     pub fn write_register<R: prelude::Write>(&mut self, reg: R) -> Result<(), Error<I2C::Error>> {
-        reg.write_to_device(&mut self.i2c, self.addr)?;
+        reg.write_to_device(self.i2c, self.addr)?;
         Ok(())
     }
 

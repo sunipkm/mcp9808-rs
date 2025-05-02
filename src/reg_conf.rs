@@ -81,7 +81,6 @@ pub enum CriticalLock {
 /// In shutdown, all power-consuming activities are disabled, though all registers can be written to or read.
 /// This bit cannot be set to ‘1’ when either of the Lock bits is set (bit 6 and bit 7).
 /// However, it can be cleared to ‘0’ for continuous conversion while locked.
-
 pub enum ShutdownMode {
     /// Continuous conversion (power-up default)
     Continuous = 0,
