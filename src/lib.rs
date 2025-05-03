@@ -56,6 +56,12 @@ impl<I2C> MCP9808<I2C> {
     pub fn resolution(&self) -> ResolutionVal {
         self.res
     }
+
+    #[inline(always)]
+    /// Get the current i2c address
+    pub fn get_address(&self) -> u8 {
+        self.addr
+    }
 }
 
 impl<I2C> MCP9808<I2C>
