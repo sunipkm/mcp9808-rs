@@ -2,8 +2,10 @@ extern crate cast;
 
 #[cfg(feature = "with_floating_point")]
 use cast::f32;
-#[cfg(feature = "with_floating_point")]
+#[cfg(all(feature = "with_floating_point", not(feature = "std")))]
 use core::f32;
+#[cfg(all(feature = "with_floating_point", feature = "std"))]
+use std::f32;
 
 use cast::i16;
 use prelude::Read;
@@ -26,7 +28,7 @@ pub trait ReadableTempRegister: Read {
     #[cfg(feature = "with_floating_point")]
     fn get_celsius(&self, res: ResolutionVal) -> f32;
 
-    /// avoids floats, but only works up to 0.125 resolution
+    /// avoids floats, but panics if resolution is 0.0625°C on no_std targets
     fn get_milli_celsius(&self, res: ResolutionVal) -> i32;
 
     /// raw register value
@@ -46,6 +48,7 @@ impl ReadableTempRegister for Register {
         ftemp
     }
 
+    #[cfg(not(feature = "with_floating_point"))]
     fn get_milli_celsius(&self, res: ResolutionVal) -> i32 {
         if res == ResolutionVal::Deg_0_0625C {
             panic!("precision invalid for milli C°")
@@ -56,6 +59,16 @@ impl ReadableTempRegister for Register {
         let mut temp_dec = get_decimal_part(high, low) as i32 * 1000;
         temp_dec += get_fractional_part_dec(res, low) as i32;
         temp_dec
+    }
+
+    #[cfg(feature = "with_floating_point")]
+    fn get_milli_celsius(&self, res: ResolutionVal) -> i32 {
+        let mut ftemp: f32 = self.get_celsius(res).clamp(-273.15, 150.0);
+        ftemp *= 1000.0;
+        #[cfg(feature = "std")]
+        return ftemp.round() as i32;
+        #[cfg(not(feature = "std"))]
+        return ftemp as i32;
     }
 
     fn get_raw_value(&self) -> u16 {
@@ -139,6 +152,7 @@ fn get_decimal_part(mut high: u8, low: u8) -> i16 {
     }
 }
 
+#[cfg(not(feature = "with_floating_point"))]
 fn get_fractional_part_dec(res: ResolutionVal, low: u8) -> u16 {
     let fract: u16 = (low & 0x000F).into(); // mask nibble
     (fract >> (3 - res as u16)) * get_precision_factor_dec(res)

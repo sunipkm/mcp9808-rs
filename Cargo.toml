@@ -19,6 +19,7 @@ readme = "README.md"
 default = ["with_floating_point"]
 with_floating_point = []
 no_floating_point = []
+std = []
 
 [dependencies]
 embedded-hal = { version = "1.0.0-rc.1" }

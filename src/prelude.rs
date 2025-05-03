@@ -1,5 +1,8 @@
 use crate::error::Error;
 use crate::reg::Register;
+#[cfg(feature = "std")]
+use std::fmt::Debug;
+#[cfg(not(feature = "std"))]
 use core::fmt::Debug;
 use embedded_hal::i2c::{I2c, SevenBitAddress};
 

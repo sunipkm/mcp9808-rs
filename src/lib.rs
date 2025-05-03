@@ -1,11 +1,14 @@
 #![deny(warnings)]
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate bit_field;
 extern crate cast;
 extern crate embedded_hal;
 
+#[cfg(not(feature = "std"))]
 use core::marker::PhantomData;
+#[cfg(feature = "std")]
+use std::marker::PhantomData;
 
 use crate::address::SlaveAddress;
 use crate::error::Error;
@@ -70,7 +73,7 @@ where
             res,
             _marker: PhantomData,
         };
-        let mut conf = reg_conf::new();
+        let mut conf = mcp.read_resolution(i2c)?;
         conf.set_resolution(res);
         mcp.write_register(conf, i2c)?;
         Ok(mcp)
